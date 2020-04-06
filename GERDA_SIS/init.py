@@ -1,5 +1,11 @@
-#get status + get position script
-#prints and saves both positions and status parameters of all units (1, 2, 3) 
+#initialise command
+#only works if units are in remote control mode 
+#initialise all, or only specific units
+#initialisation of all units as default (init.py)
+#initialisation of certain unit (1, 2, 3) when unit number is specified (e.g. init.py 1)  
+#the expected time to finish is printed in the beginning
+#an overview of the current positions is printed every 10 sec
+#the speed of the movement is approx. 10 mm/s
 #the setup of the units needs to be as follows: 1, 2, 3 at control box ports 1, 2, 3; usb-to-serial converter port 1) 
 #in case of success, the script exits on 0, otherwise on 1
 
@@ -15,15 +21,30 @@ from datetime import datetime
 
 baudrate = 9600
 
+#time step for position update during movement 10 sec
+delta_t = 10
+#average speed 10 mm / sec
+v = 10
 #bandlength
 length = 8690
+#precision
+prec = 10
 
+
+#read in unit specification, and change from user's external unit specification to internal one
+try:
+    unit = int(sys.argv[1])
+    units = [unit - 1]
+except(IndexError):
+    units = [0, 1, 2]
+    unit = "(1, 2, 3)"
 
 #prepare log-file
 time_start = datetime.now().strftime("%H-%M-%S")
-file_name = datetime.now().strftime("%Y-%m-%d-%H") #-%M-%S")
-file = open('log-get_' + file_name + '.txt', 'w')
-file.write('Status and position check at: ' + time_start + '\n')
+file_name = datetime.now().strftime("%Y-%m-%d") #-%H-%M-%S")
+file = open('log-init_' + file_name + '.txt', 'w')
+file.write('Initialisation started at: ' + time_start + '\n')
+file.write('Script called with external unit specification ' + str(unit) + '\n\n')
 
 
 #global port specification
@@ -34,7 +55,7 @@ if platform.system() == "Linux":
     global_port_spec = '/dev/ttyMXUSB' 
     plat_sys = 0    
 port_spec = global_port_spec
-port = 0
+port = 1
 port += plat_sys
 port_spec += str(port)
 
@@ -107,9 +128,41 @@ def tx_rx(tx_array, rx_length):
 
 
 
-#internal commands needed for status/position check:
-#get_status(): get current status of all nits, save and status of all units to file/to terminal
+#internal commands needed for initialisation:
+#stop(): stop command is sent to specified units; script is terminated, and exits on 1
+#get_status(): get current status of specified units, save status of all units to file
 #get_position(): get current positions (in mm) of specified units, save and print positions of all units to file/to terminal
+#init(): initialise specified units
+   
+
+def stop():
+    err = 0
+    cmd_byte = 195
+    rx_length = 4
+    
+    for unit_num in units:
+        #prepare tx_array
+        tx_array = [cmd_byte,
+                    unit_num,
+                    cmd_byte ^ 255,
+                    unit_num ^ 255,
+                    cmd_byte ^ 255,
+                    unit_num ^ 255]
+        tx_array.append(check_sum(tx_array))
+        
+        #send and receive
+        rx_array = tx_rx(tx_array, rx_length)
+        if rx_array == 0:
+            err += 1    
+
+    #error handling
+    current_time = datetime.now().strftime("%H-%M-%S")        
+    if err > 0:
+        print("Communication error occured when sending stop command as backstop!")
+        file.write(current_time + ': Communication error occured when sending stop command as backstop!\n')   
+        file.close()
+        sys.exit(1)
+    file.close()
 
 
 def get_status():      
@@ -151,8 +204,6 @@ def get_status():
             #state of motor movement
             rx_motor.append(rx_array[8 + unit_num] & 3)  
     
-    print("Movement (0: idle/break, 1: down, 2: up):",str(rx_motor))
-    print("Initialisitaion status (0: not init., 1: init.):",str(rx_init))
     current_time = datetime.now().strftime("%H-%M-%S") 
     file.write(current_time + ': Status check:\n')
     file.write('Received bytes: ' + str(rx_bytes) + '\n')
@@ -160,14 +211,19 @@ def get_status():
     file.write('Movement (0: idle/break, 1: down, 2: up): ' + str(rx_motor) + '\n')
     file.write('Initialisitaion status (0: not init., 1: init.): ' + str(rx_init) + '\n')   
 
-    status = [rx_init, rx_motor]
+    #all units:
+    if len(units) > 1:  
+        status = [rx_init, rx_motor]
+    
+    #individual unit
+    else:
+        status = [[rx_init[units[0]]], [rx_motor[units[0]]]]
     
     #error handling       
     if err > 0:
         print("Communication error occured during status check!")
         file.write(current_time + ': Communication error occured during status check!\n')
-        file.close()
-        sys.exit(1)
+        stop()
         
     return status
 
@@ -199,7 +255,7 @@ def get_position():
         inc_pos.extend((-999, -999, -999))
         abs_pos.extend((-999, -999, -999))
         discr.extend((-999, -999, -999)) 
-        
+    
     #data processing
     else:
         for unit_num in range(3):
@@ -222,8 +278,6 @@ def get_position():
             pos.append(abs_pos[unit_num])
             
     print("Current positions:",str(pos))
-    file.write('Absolute encoder: ' + str(abs_pos) + '\n') 
-    file.write('Discrepancies (incremental - absolute): ' + str(discr) + '\n')
     pos_file = open('current_positions.txt', 'w')
     pos_file.write('Positions:\n' + str(pos) + '\nIncremental encoder:\n' + str(inc_pos) + '\nAbsolute encoder:\n' + str(abs_pos) + '\nDiscrepancies (incremental - absolute):\n' + str(discr))
     pos_file.close()
@@ -234,28 +288,107 @@ def get_position():
     file.write('Absolute encoder: ' + str(abs_pos) + '\n') 
     file.write('Discrepancies (incremental - absolute): ' + str(discr) + '\n')
     
+    #positions to be returned (all units or individual unit)    
+    if len(units) == 1:  
+        pos = [pos[units[0]]]
+    
     #error handling
     current_time = datetime.now().strftime("%H-%M-%S")        
     if err > 0:
         print("Communication error occured during position check!")
         file.write(current_time + ': Communication error occured during position check!\n')
-        file.close()
-        sys.exit(1)
+        stop()
         
-    return pos     
+    return pos
+       
 
-
+def init():
+    err = 0      
+    cmd_byte = 170
+    rx_length = 4
     
-   
+    for unit_num in units:
+        #prepare tx_array
+        tx_array = [cmd_byte,
+                    unit_num,
+                    cmd_byte ^ 255,
+                    unit_num ^ 255,
+                    cmd_byte ^ 255,
+                    unit_num ^ 255]
+        tx_array.append(check_sum(tx_array)) 
+    
+        #send and receive
+        rx_array = tx_rx(tx_array, rx_length)
+        if rx_array == 0:
+            err += 1
+                
+    current_time = datetime.now().strftime("%H-%M-%S")    
+    #error handling
+    if err > 0:
+        print("Communication error occured when sending initialisation command!")
+        file.write(current_time + ': Communication error occured when sending initialisation command!\n')
+        stop()
+    
+    return 0
+    
+    
+       
+
 #main program
     
-#check current status  
-get_status()  
-#check current positions  
-get_position()
+#check current position, send init command, print expected time needed to finish   
+pos = get_position()
+init()
+t = int(max(pos) / v + 1)
+#2 seconds to hit end-switch and move back to parking position
+t += 2
 
-#finish log-file
+current_time = datetime.now().strftime("%H-%M-%S")
+if t > 0:
+    print("Expected time needed to initialise (in sec):",str(t))
+    file.write(current_time + ': Expected time needed to initialise (in sec): ' + str(t) + '\n')
+else:
+    print("Expected time needed to initialise unknown.")
+    file.write(current_time + ': Expected time needed to initialise unknown.\n')
+     
+#check positions and motor status during movement
+max_time = time.time() + 60*20 #maximal waiting time 20 mins
+while True:
+            
+    current_time = datetime.now().strftime("%H-%M-%S")
+    if time.time() > max_time:
+        print("Maximum waiting time has expired. Make sure that communication works properly.")
+        file.write(current_time + ': Maximum waiting time has expired. Make sure that communication works properly.\n')
+        stop()
+    
+    if 0 <= t <= delta_t:
+        time.sleep(t)
+    else:
+        time.sleep(delta_t)   
+    
+    status = get_status()
+    pos = get_position()
+    init = status[0]
+    motor = status[1]
+    
+    #exit loop when motor(s) has/have stopped
+    if all(elem == 0 for elem in motor):
+        time.sleep(1)
+        break
+     
+#check initialisation status, ensure that parking position has been approached, and finish log-file
 time_end = datetime.now().strftime("%H-%M-%S")
-file.write('\nStatus and position check finished at: ' + time_end + '\n')
-file.close()
-exit(0)        
+
+if (all(elem == 1 for elem in init) and all(abs(elem) <= prec for elem in pos)):
+    file.write('\nSending initialisation commands finished at: ' + time_end + '\n')
+    file.close()
+    exit(0)
+    
+else:
+    print("Initialisation could not be finished successfully!")
+    file.write(current_time + ': Initialisation could not be finished successfully!\n')
+    file.close()
+    sys.exit(1)     
+    
+    
+        
