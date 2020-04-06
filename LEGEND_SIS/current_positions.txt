@@ -1,0 +1,8 @@
+Public positions:
+[0, -9999, 0, -9999]
+Incremental encoder:
+[-9999, -9999, 0, -9999]
+Absolute encoder:
+[0, -9999, -9999, -9999]
+Discrepancies (incremental - absolute):
+[-9999, 0, -9999, 0]
