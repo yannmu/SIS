@@ -1,9 +1,12 @@
 # SIS (source insertion system) control code
+
 python3, pyserial needed, Windows+Linux supported
+
 GERDA: 3 systems, controlled from one box
+
 LEGEND: 4 systems, controlled from two boxes (2+2)
 
-
+-----
 
 short description of scripts:
 
@@ -31,6 +34,7 @@ most important ones are also printed in terminal
 
 - "test_iteration.py" --> not really needed, just an example script to show how one could call the other scripts repeatedly on Windows (Python3 Anaconda interpreter), or on Linux (ubuntu kernel 4.x), plenty of other options exist as well of course)
 
+-----
 
 
 internal basic commands:
