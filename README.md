@@ -1,7 +1,7 @@
 # SIS (source insertion system) control code
-python3, pyserial needed, Windows+Linux supported\\
-GERDA: 3 systems, controlled from one box\\
-LEGEND: 4 systems, controlled from two boxes (2+2)\\
+python3, pyserial needed, Windows+Linux supported
+GERDA: 3 systems, controlled from one box
+LEGEND: 4 systems, controlled from two boxes (2+2)
 
 
 
