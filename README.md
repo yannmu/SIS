@@ -48,3 +48,29 @@ internal basic commands:
 -get status of units
 
 -get positions of units
+
+-----
+
+structure of calibration procedure in DAQ code (example):
+
+-python3 init.py
+
+-python3 pos.py 7200
+
+-python3 pos.py 8500 x x x
+
+-DAQ commands for data taking
+
+-python3 pos.py 7200 8500 x x
+
+-DAQ commands for data taking
+
+-python3 pos.py x 7200 8500 x
+
+-DAQ commands for data taking
+
+-python3 pos.py x x 7200 8500
+
+-DAQ commands for data taking
+
+-python3 init.py (for full removal, otherwise e.g. python3 pos.py 6000 to park all sources just above the detector arrays)
