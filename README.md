@@ -1,7 +1,7 @@
 # SIS (source insertion system) control code
-python3, pyserial needed, Windows+Linux supported
-GERDA: 3 systems, controlled from one box
-LEGEND: 4 systems, controlled from two boxes (2+2)
+python3, pyserial needed, Windows+Linux supported\\
+GERDA: 3 systems, controlled from one box\\
+LEGEND: 4 systems, controlled from two boxes (2+2)\\
 
 
 
@@ -29,14 +29,13 @@ note that units need to be initialised in order to be moved to certain positions
 - "get.py" --> current positions and status bits/bytes are saved in a txt file,
 most important ones are also printed in terminal
 
-(- "test_iteration.py" --> not needed, just an example script to show how one could call the other scripts repeatedly on Windows
-(Python3 Anaconda interpreter), or on Linux (ubuntu kernel 4.x), plenty of other options exist as well of course)
+- "test_iteration.py" --> not really needed, just an example script to show how one could call the other scripts repeatedly on Windows (Python3 Anaconda interpreter), or on Linux (ubuntu kernel 4.x), plenty of other options exist as well of course)
 
 
 
-internal basic commands:
--send init command to a unit
--send target position to a unit
--send stop command to a unit
--get status of units
--get positions of units
+internal basic commands:\\
+-send init command to a unit\\
+-send target position to a unit\\
+-send stop command to a unit\\
+-get status of units\\
+-get positions of units\\
