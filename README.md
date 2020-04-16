@@ -33,9 +33,14 @@ most important ones are also printed in terminal
 
 
 
-internal basic commands:\\
--send init command to a unit\\
--send target position to a unit\\
--send stop command to a unit\\
--get status of units\\
--get positions of units\\
+internal basic commands:
+
+-send init command to a unit
+
+-send target position to a unit
+
+-send stop command to a unit
+
+-get status of units
+
+-get positions of units
