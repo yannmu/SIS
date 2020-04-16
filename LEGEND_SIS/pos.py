@@ -190,7 +190,6 @@ def stop():
         file.write(current_time + ': Communication error occured when sending stop command as backstop!\n')   
         file.close()
         sys.exit(1)
-    file.close()
 
 
 def get_status():      

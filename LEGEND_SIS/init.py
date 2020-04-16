@@ -169,7 +169,6 @@ def stop():
         file.write(current_time + ': Communication error occured when sending stop command as backstop!\n')   
         file.close()
         sys.exit(1)
-    file.close()
 
 
 def get_status():      
@@ -365,7 +364,7 @@ while True:
     if time.time() > max_time:
         print("Maximum waiting time has expired. Make sure that communication works properly.")
         file.write(current_time + ': Maximum waiting time has expired. Make sure that communication works properly.\n')
-        stop()
+        stop(unit)
     
     if 0 <= t <= delta_t:
         time.sleep(t)

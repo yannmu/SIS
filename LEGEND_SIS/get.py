@@ -166,9 +166,8 @@ def get_status():
     if err > 0:
         print("Communication error occured during status check!")
         file.write(current_time + ': Communication error occured during status check!\n')
-        file.close()
-        sys.exit(1)
-
+        stop()
+        
     return status
 
 
@@ -237,9 +236,8 @@ def get_position():
     if err > 0:
         print("Communication error occured during position check!")
         file.write(current_time + ': Communication error occured during position check!\n')
-        file.close()
-        sys.exit(1)
-
+        stop()
+    
     return pos
        
 
