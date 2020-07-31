@@ -29,7 +29,7 @@ note that units need to be initialised in order to be moved to certain positions
 
 - "stop.py" or "stop.py <unit no.>" --> stop of a possibly ongoing movement
 of either all units, or a certain unit;
-current positions are printed in console and saved in txt file every 10 sec;
+current positions are printed in console and saved in txt file;
 exit on 1 in case of errors
   
 - "get.py" --> current positions and status bits/bytes are saved in a txt file,
